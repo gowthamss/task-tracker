@@ -63,7 +63,7 @@ const addTask = (input) => {
             if (!tasks.length)  {
                 taskToAdd['id'] = 1;
             } else {
-                taskToAdd['id'] = tasks.length + 1;
+                taskToAdd['id'] = tasks[tasks.length - 1]['id'] + 1;
             }
 
             tasks.push(taskToAdd);
@@ -196,15 +196,20 @@ const readAndAppendData = (taskName) => {
             return;
         }
 
-        const task = {
-            id: tasks.length + 1,
+        const taskToAdd = {
             description: taskName,
             status: 'todo',
             createdAt: new Date(),
             updatedAt: ''
         };
 
-        tasks.push(task);
+        if (!tasks.length)  {
+            taskToAdd['id'] = 1;
+        } else {
+            taskToAdd['id'] = tasks[tasks.length - 1]['id'] + 1;
+        }
+
+        tasks.push(taskToAdd);
 
         fs.writeFile('tasks.json', JSON.stringify(tasks), 'utf8', (err) => {
             if (err) {
