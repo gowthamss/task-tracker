@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { argv } from 'node:process';
 import { validCommandsSet, validListCommands } from './model.js';
 import fs from 'fs';
@@ -40,7 +41,6 @@ const addTask = (input) => {
     validateTaskName(taskName);
 
     fs.access(fileName, fs.constants.F_OK, (err) => {
-        console.log(err);
         if (err && err.code == 'ENOENT') {
             fs.writeFileSync(fileName, '[]', 'utf8', (err) => {
                 if (err) {
@@ -192,13 +192,13 @@ const postTasks = (fileName, tasks, action = '') => {
     try {
         fs.writeFile(fileName, JSON.stringify(tasks), 'utf8', (err) => {
             if (err) {
-                return `Unable to ${action} your task. Please try again`;
+                returnError(`Unable to ${action} your task. Please try again`);
             }
 
             console.info(`Your task is ${action} successfully`);
         });
     } catch (err) {
-        throw new Error(`Something wrong happened: ${err}`);
+        returnError(`Something wrong happened: ${err}`)
     }
 }
 
