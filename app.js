@@ -182,47 +182,6 @@ const listTasks = (input) => {
     }
 };
 
-const readAndAppendData = (taskName) => {
-    fs.readFile('tasks.json', 'utf8', (err, fileData) => {
-        if (err) {
-            console.error('Something wrong happened. Please try again.');
-            return;
-        }
-
-        let tasks;
-        try {
-            tasks = JSON.parse(fileData);
-        } catch (parseErr) {
-            console.error('Something wrong happened', parseErr);
-            return;
-        }
-
-        const taskToAdd = {
-            description: taskName,
-            status: 'todo',
-            createdAt: new Date(),
-            updatedAt: ''
-        };
-
-        if (!tasks.length)  {
-            taskToAdd['id'] = 1;
-        } else {
-            taskToAdd['id'] = tasks[tasks.length - 1]['id'] + 1;
-        }
-
-        tasks.push(taskToAdd);
-
-        fs.writeFile('tasks.json', JSON.stringify(tasks), 'utf8', (err) => {
-            if (err) {
-                console.error('There is a problem adding you task at the moment. Can you try again?');
-                return;
-            }
-
-            console.error('Your task has been added.');
-        })
-    });
-};
-
 const getTasks = (fileName) => {
     try {
         const tasks = fs.readFileSync(fileName, 'utf8');
