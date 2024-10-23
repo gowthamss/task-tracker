@@ -43,7 +43,7 @@ const addTask = (input) => {
     validateTaskName(taskName);
 
     fs.access(fileName, fs.constants.F_OK, (err) => {
-        if (err) {
+        if (err && err.code == 'ENOENT') {
             fs.writeFileSync(fileName, '[]', 'utf8', (err) => {
                 if (err) {
                     console.error('Something wrong happened. Please try again.');
@@ -51,28 +51,29 @@ const addTask = (input) => {
                 }
             });
 
-            const tasks = getTasks(fileName);
-
-            const taskToAdd = {
-                description: taskName,
-                status: 'todo',
-                createdAt: new Date(),
-                updatedAt: ''
-            };
-
-            if (!tasks.length)  {
-                taskToAdd['id'] = 1;
-            } else {
-                taskToAdd['id'] = tasks[tasks.length - 1]['id'] + 1;
-            }
-
-            tasks.push(taskToAdd);
-
-            postTasks(fileName, tasks, 'added');
-
         } else {
-            readAndAppendData(taskName);
+            console.error('There is a problem adding your task at this moment. Please try again.');
+            return;
         }
+
+        const tasks = getTasks(fileName);
+
+        const taskToAdd = {
+            description: taskName,
+            status: 'todo',
+            createdAt: new Date(),
+            updatedAt: ''
+        };
+
+        if (!tasks.length)  {
+            taskToAdd['id'] = 1;
+        } else {
+            taskToAdd['id'] = tasks[tasks.length - 1]['id'] + 1;
+        }
+
+        tasks.push(taskToAdd);
+
+        postTasks(fileName, tasks, 'added');
     });
 };
 
