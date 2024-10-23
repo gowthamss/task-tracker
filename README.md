@@ -1,6 +1,7 @@
 This simple app can help you create a simple list of your tasks. You can edit, remove and change status of those tasks as you go.
 
 <h4>How to use:</h4>
+<p>Clone the repo and start adding the tasks by using following commands.</p>
 
 <h6>Adding tasks:</h6>
 <blockquote>task-cli add 'task name'</blockquote>
