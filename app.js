@@ -1,12 +1,10 @@
-#!/usr/bin/env node
-
 import { argv } from 'node:process';
 import { validCommandsSet, validListCommands } from './model.js';
 import fs from 'fs';
 
 const readInputFromCLI = (input) => {
     if (!input.length || input.length < 3) {
-        console.error('Please enter a valid command to work with you tasks.');
+        returnError('Please enter a valid command to work with you tasks.');
     }
 
     validateCommand(input[2], validCommandsSet);
@@ -31,8 +29,7 @@ const readInputFromCLI = (input) => {
             listTasks(input);
             break;
         default:
-            console.error('Unknown command.');
-            process.exit(1);
+            returnError('Unknown command.');
     }
 };
 
@@ -43,17 +40,14 @@ const addTask = (input) => {
     validateTaskName(taskName);
 
     fs.access(fileName, fs.constants.F_OK, (err) => {
+        console.log(err);
         if (err && err.code == 'ENOENT') {
             fs.writeFileSync(fileName, '[]', 'utf8', (err) => {
                 if (err) {
-                    console.error('Something wrong happened. Please try again.');
-                    return;
+                    returnError('Something wrong happened. Please try again.');
                 }
             });
 
-        } else {
-            console.error('There is a problem adding your task at this moment. Please try again.');
-            return;
         }
 
         const tasks = getTasks(fileName);
@@ -94,7 +88,7 @@ const updateTask = (input) => {
         task['updatedAt'] = new Date();
         tasks.splice(taskIdx, 1, task);
     } else {
-        throw new Error(`The task you are trying to update is not found. Have you created it?`);
+        returnError(`The task you are trying to update is not found. Have you created it?`);
     }
 
     postTasks(fileName, tasks, 'updated');
@@ -112,7 +106,7 @@ const deleteTask = (input) => {
     if (taskIdx !== -1) {
         tasks.splice(taskIdx, 1);
     } else {
-        throw new Error(`The task you are trying to delete is not found. Have you created it?`);
+        returnError(`The task you are trying to delete is not found. Have you created it?`);
     }
 
     postTasks(fileName, tasks, 'deleted');
@@ -133,7 +127,7 @@ const markTaskInProgress = (input) => {
         task['updatedAt'] = new Date();
         tasks.splice(taskIdx, 1, task);
     } else {
-        throw new Error(`The task you are trying to update is not found. Have you created it?`);
+        returnError(`The task you are trying to update is not found. Have you created it?`);
     }
 
     postTasks(fileName, tasks, 'marked in-progress');
@@ -154,7 +148,7 @@ const markTaskDone = (input) => {
         task['updatedAt'] = new Date();
         tasks.splice(taskIdx, 1, task);
     } else {
-        throw new Error(`The task you are trying to update is not found. Have you created it?`);
+        returnError(`The task you are trying to update is not found. Have you created it?`);
     }
 
     postTasks(fileName, tasks, 'marked done');
@@ -171,14 +165,14 @@ const listTasks = (input) => {
     let tasks = getTasks(fileName);
 
     if (!tasks.length) {
-        console.log('There are no taks in your list. Please add them.');
-        process.exit(1);
+        returnError('There are no taks in your list. Please add them.');
     }
 
     if (!taskStatus) {
         console.log(tasks);
     } else {
-        console.log(tasks.filter(task => task.status === taskStatus));
+        tasks = tasks.filter(task => task.status === taskStatus);
+        tasks.length ? console.log(tasks) : returnError(`You don't have any tasks marked ${taskStatus}`);
     }
 };
 
@@ -188,9 +182,9 @@ const getTasks = (fileName) => {
         return JSON.parse(tasks);
     } catch (err) {
         if (err.code == 'ENOENT') {
-            throw new Error(`File not found: ${fileName}`);
+            returnError(`You don't have a task list. Please add tasks.`);
         }
-        throw new Error(`Error getting tasks: ${err.message}`);
+        returnError(`Error getting tasks: ${err.message}`);
     }
 };
 
@@ -210,23 +204,25 @@ const postTasks = (fileName, tasks, action = '') => {
 
 const validateCommand = (command, commandList) => {
     if (!commandList.has(command)) {
-        console.error(`Invalid command: ${command} provided`);
-        process.exit(1);
+        returnError(`Invalid command: ${command} provided`);
     }
 };
 
 const validateTaskName = (name) => {
-    if (typeof name !== 'string' || !name.length) {
-        console.error('The task name should be a string and cannot be empty');
-        process.exit(1);
+    if (typeof name !== 'string' || !name.length || !name) {
+        returnError('The task name should be a string and cannot be empty');
     }
 };
 
 const validateTaskId = (id) => {
     if (typeof id !== 'number' || !id || id <= 0) {
-        console.error('Entered task not found. Please enter a valid task id.');
-        process.exit(1);
+        returnError('Entered task not found. Please enter a valid task id.');
     }
+};
+
+const returnError = (message) => {
+    console.error(message);
+    process.exit(1);
 };
 
 readInputFromCLI(argv);
